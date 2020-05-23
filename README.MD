@@ -21,6 +21,9 @@ AndroidManifest.xml is automatically updated to use the new MainActivity.
 Based on cordova-android-fragments (https://github.com/rajivnarayana/CordovaFragments)
 
 # History
+## 1.0.0
+- Migrate to androidx
+
 ## 0.0.9
 - Fix missing import
 
