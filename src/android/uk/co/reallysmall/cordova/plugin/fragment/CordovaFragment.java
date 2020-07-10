@@ -26,7 +26,7 @@ import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.http.SslError;
 import android.os.Bundle;
-import android.app.Fragment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -39,6 +39,8 @@ import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+
+import androidx.fragment.app.Fragment;
 
 import org.apache.cordova.BuildConfig;
 import org.apache.cordova.ConfigXmlParser;
@@ -96,7 +98,8 @@ public class CordovaFragment extends Fragment {
     // The webview for our app
     protected CordovaWebView appView;
 
-
+    final Handler mHandler = new Handler();
+    
     public CordovaWebView getAppView() {
         return appView;
     }
@@ -112,24 +115,30 @@ public class CordovaFragment extends Fragment {
     protected ArrayList<PluginEntry> pluginEntries;
     protected CordovaInterfaceImpl cordovaInterface;
 
-    private View contentView;
+    private FrameLayout contentView;
 
     public View getContentView() {
         return contentView;
     }
 
     public void setContentView(View contentView) {
-        FrameLayout frame = new FrameLayout(this.getActivity().getBaseContext());
-        frame.addView(contentView);
-        this.contentView = frame;
+        this.contentView.removeAllViews();
+        this.contentView.addView(contentView);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if(contentView == null){
-            init();
+            this.contentView = new FrameLayout(this.getActivity().getBaseContext());
         }
         loadUrl(launchUrl);
+
+        mHandler.post(new Runnable() {
+            public void run() {
+                loadUrl(launchUrl);
+            }
+        });
+        
         return contentView;
     }
 
@@ -268,6 +277,18 @@ public class CordovaFragment extends Fragment {
         this.keepRunning = preferences.getBoolean("KeepRunning", true);
 
         appView.loadUrlIntoView(url, true);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        LOG.d(TAG, "Paused the activity.");
+
+        if (this.appView == null) {
+            return;
+        }
+
+        this.appView.handlePause(this.keepRunning);
     }
 
     /**

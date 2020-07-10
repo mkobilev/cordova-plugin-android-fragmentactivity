@@ -21,11 +21,10 @@ package ${mypackage};
 
 /** extends CordovaActivity */
 
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.fragment.app.FragmentActivity;
-// import android.support.v4.app.FragmentActivity;
+import androidx.fragment.app.FragmentTransaction;
 
 public class MainActivity extends FragmentActivity
 {
@@ -40,54 +39,9 @@ public class MainActivity extends FragmentActivity
         super.onCreate(savedInstanceState);
 
         currentFragment = new uk.co.reallysmall.cordova.plugin.fragment.CordovaFragment();
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.add(android.R.id.content, currentFragment);
         ft.commit();
-    }
-
-    /**
-     * Called when the system is about to start resuming a previous activity.
-     */
-    @Override
-    protected void onPause() {
-        super.onPause();
-        currentFragment.onPause();
-    }
-
-    /**
-     * Called when the activity will start interacting with the user.
-     */
-    @Override
-    protected void onResume() {
-        super.onResume();
-        currentFragment.onResume();
-    }
-
-    /**
-     * Called when the activity is no longer visible to the user.
-     */
-    @Override
-    protected void onStop() {
-        super.onStop();
-        currentFragment.onStop();
-    }
-
-    /**
-     * Called when the activity is becoming visible to the user.
-     */
-    @Override
-    protected void onStart() {
-        super.onStart();
-        currentFragment.onStart();
-    }
-
-    /**
-     * The final call you receive before your activity is destroyed.
-     */
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        currentFragment.onDestroy();
     }
 
     @Override
