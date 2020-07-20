@@ -21,9 +21,13 @@ package ${mypackage};
 
 /** extends CordovaActivity */
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 public class MainActivity extends FragmentActivity
@@ -38,10 +42,47 @@ public class MainActivity extends FragmentActivity
 
         super.onCreate(savedInstanceState);
 
-        currentFragment = new uk.co.reallysmall.cordova.plugin.fragment.CordovaFragment();
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.add(android.R.id.content, currentFragment);
-        ft.commit();
+        if (!this.isTaskRoot()) {
+            finish();
+            return;
+        }
+
+        FragmentManager fm = getSupportFragmentManager();
+
+        currentFragment = (CordovaFragment) fm.findFragmentByTag("${mypackage}");
+
+        if (currentFragment == null) {
+            currentFragment = new uk.co.reallysmall.cordova.plugin.fragment.CordovaFragment();
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.add(android.R.id.content, currentFragment,${mypackage});
+            ft.commit();
+        }
+    }
+    
+    protected void onSaveInstanceState(Bundle outState) {
+        currentFragment.onSaveInstanceState(outState);
+        super.onSaveInstanceState(outState);
+    }
+
+    /**
+     * Called when the activity receives a new intent
+     */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        currentFragment.onNewIntent(intent);
+    }
+
+    /**
+     * Called when view focus is changed
+     */
+    @SuppressLint("InlinedApi")
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+
+        currentFragment.onWindowFocusChanged(hasFocus);
     }
 
     @Override

@@ -43,6 +43,7 @@ import android.widget.FrameLayout;
 import androidx.fragment.app.Fragment;
 
 import org.apache.cordova.BuildConfig;
+import org.apache.cordova.Config;
 import org.apache.cordova.ConfigXmlParser;
 import org.apache.cordova.CordovaInterfaceImpl;
 import org.apache.cordova.CordovaPreferences;
@@ -109,6 +110,9 @@ public class CordovaFragment extends Fragment {
     // when another application (activity) is started.
     protected boolean keepRunning = true;
 
+    // Flag to keep immersive mode if set to fullscreen
+    protected boolean immersiveMode;
+
     // Read from config.xml:
     protected CordovaPreferences preferences;
     protected String launchUrl;
@@ -170,13 +174,16 @@ public class CordovaFragment extends Fragment {
             getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);
         } else if (preferences.getBoolean("Fullscreen", false)) {
-            getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            if (!preferences.getBoolean("FullscreenNotImmersive", false)) {
+                immersiveMode = true;
+            } else {
+                getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                        WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            }
         } else {
             getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
         }
-
 
         super.onCreate(savedInstanceState);
 
@@ -219,7 +226,7 @@ public class CordovaFragment extends Fragment {
         preferences.setPreferencesBundle(getActivity().getIntent().getExtras());
         launchUrl = parser.getLaunchUrl();
         pluginEntries = parser.getPluginEntries();
-//        Config.parser = parser;
+      //  Config.parser = parser;
     }
 
     //Suppressing warnings in AndroidStudio
@@ -234,9 +241,14 @@ public class CordovaFragment extends Fragment {
         setContentView(appView.getView());
 
         if (preferences.contains("BackgroundColor")) {
-            int backgroundColor = preferences.getInteger("BackgroundColor", Color.BLACK);
-            // Background of activity:
-            appView.getView().setBackgroundColor(backgroundColor);
+            try {
+                int backgroundColor = preferences.getInteger("BackgroundColor", Color.BLACK);
+                // Background of activity:
+                appView.getView().setBackgroundColor(backgroundColor);
+            }
+            catch (NumberFormatException e){
+                e.printStackTrace();
+            }
         }
 
         appView.getView().requestFocusFromTouch();
@@ -284,11 +296,21 @@ public class CordovaFragment extends Fragment {
         super.onPause();
         LOG.d(TAG, "Paused the activity.");
 
-        if (this.appView == null) {
-            return;
+        if (this.appView != null) {
+            // CB-9382 If there is an activity that started for result and main activity is waiting for callback
+            // result, we shoudn't stop WebView Javascript timers, as activity for result might be using them
+            boolean keepRunning = this.keepRunning;// || this.cordovaInterface.activityResultCallback != null;
+            this.appView.handlePause(keepRunning);
         }
+    }
 
-        this.appView.handlePause(this.keepRunning);
+    /**
+     * Called when the activity receives a new intent
+     */
+    public void onNewIntent(Intent intent) {
+        //Forward to plugins
+        if (this.appView != null)
+            this.appView.onNewIntent(intent);
     }
 
     /**
@@ -302,9 +324,11 @@ public class CordovaFragment extends Fragment {
         if (this.appView == null) {
             return;
         }
-        // Force window to have focus, so application always
-        // receive user input. Workaround for some devices (Samsung Galaxy Note 3 at least)
-        this.getActivity().getWindow().getDecorView().requestFocus();
+        if (!getActivity().getWindow().getDecorView().hasFocus()) {
+            // Force window to have focus, so application always
+            // receive user input. Workaround for some devices (Samsung Galaxy Note 3 at least)
+            getActivity().getWindow().getDecorView().requestFocus();
+        }
 
         this.appView.handleResume(this.keepRunning);
     }
@@ -351,6 +375,22 @@ public class CordovaFragment extends Fragment {
              appView.handleDestroy();
          }
      }
+
+    /**
+     * Called when view focus is changed
+     */
+    public void onWindowFocusChanged(boolean hasFocus) {
+        if (hasFocus && immersiveMode) {
+            final int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+
+            getActivity().getWindow().getDecorView().setSystemUiVisibility(uiOptions);
+        }
+    }
 
     @Override
     public void startActivityForResult(Intent intent, int requestCode) {
