@@ -49,12 +49,12 @@ public class MainActivity extends FragmentActivity
 
         FragmentManager fm = getSupportFragmentManager();
 
-        currentFragment = (CordovaFragment) fm.findFragmentByTag("${mypackage}");
+        currentFragment = (uk.co.reallysmall.cordova.plugin.fragment.CordovaFragment) fm.findFragmentByTag("${mypackage}");
 
         if (currentFragment == null) {
             currentFragment = new uk.co.reallysmall.cordova.plugin.fragment.CordovaFragment();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft.add(android.R.id.content, currentFragment,${mypackage});
+            ft.add(android.R.id.content, currentFragment,"${mypackage}");
             ft.commit();
         }
     }

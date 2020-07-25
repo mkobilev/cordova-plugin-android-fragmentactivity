@@ -34,7 +34,7 @@ module.exports = function(context) {
         manifestRoot = manifest['manifest'];
         packageName = manifestRoot['$']['package'];
 
-        newActivity = activity.replace('${mypackage}', packageName);
+        newActivity = activity.replaceAll(/\$\{mypackage\}/g, packageName);
         newActivityPath = utilities.getAndroidSourcePath(context) + "/" + packageName.replaceAll("\\.", "/") + '/MainActivity.java';
 
         console.log(newActivityPath);
