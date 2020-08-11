@@ -21,6 +21,9 @@ AndroidManifest.xml is automatically updated to use the new MainActivity.
 Based on cordova-android-fragments (https://github.com/rajivnarayana/CordovaFragments)
 
 # History
+## 2.2.1
+- Fix bug where fragment launched twice
+
 ## 2.2.0
 - Add support for onNewIntent
 - Apply some fixes from main cordova repo
