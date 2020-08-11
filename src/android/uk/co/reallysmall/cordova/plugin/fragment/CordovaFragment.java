@@ -98,8 +98,6 @@ public class CordovaFragment extends Fragment {
 
     // The webview for our app
     protected CordovaWebView appView;
-
-    final Handler mHandler = new Handler();
     
     public CordovaWebView getAppView() {
         return appView;
@@ -135,13 +133,7 @@ public class CordovaFragment extends Fragment {
         if(contentView == null){
             this.contentView = new FrameLayout(this.getActivity().getBaseContext());
         }
-        loadUrl(launchUrl);
-
-        mHandler.post(new Runnable() {
-            public void run() {
-                loadUrl(launchUrl);
-            }
-        });
+        loadUrl(launchUrl);;
         
         return contentView;
     }

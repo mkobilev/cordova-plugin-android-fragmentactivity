@@ -60,8 +60,9 @@ public class MainActivity extends FragmentActivity
     }
     
     protected void onSaveInstanceState(Bundle outState) {
-        currentFragment.onSaveInstanceState(outState);
         super.onSaveInstanceState(outState);
+        
+        currentFragment.onSaveInstanceState(outState);
     }
 
     /**
